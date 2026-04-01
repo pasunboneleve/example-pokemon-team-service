@@ -74,9 +74,15 @@ jobs:
           LAMBDA_EXECUTION_ROLE_ARN: ${{ secrets.AWS_LAMBDA_EXECUTION_ROLE_ARN }}
         run: |
           if aws lambda get-function --function-name "${AWS_LAMBDA_FUNCTION_NAME}" >/dev/null 2>&1; then
+            aws lambda wait function-active-v2 \
+              --function-name "${AWS_LAMBDA_FUNCTION_NAME}"
+
             aws lambda update-function-code \
               --function-name "${AWS_LAMBDA_FUNCTION_NAME}" \
               --image-uri "${IMAGE_IDENTIFIER}"
+
+            aws lambda wait function-updated-v2 \
+              --function-name "${AWS_LAMBDA_FUNCTION_NAME}"
 
             aws lambda update-function-configuration \
               --function-name "${AWS_LAMBDA_FUNCTION_NAME}" \
