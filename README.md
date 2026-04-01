@@ -84,6 +84,20 @@ The deployment flow is intentionally close to the template:
 6. Copy `deploy.env.template` to `deploy.env`, update values, and commit it
 7. Push to `main`
 
+If `tofu init` fails with `No valid credential sources found` while
+using an AWS CLI profile, export temporary credentials into the
+environment first:
+
+```bash
+eval "$(
+  aws configure export-credentials \
+    --profile <your-profile> \
+    --format env
+)"
+```
+
+Then run `tofu init` again.
+
 GitHub Actions will:
 
 - assume the AWS deploy role through GitHub OIDC
