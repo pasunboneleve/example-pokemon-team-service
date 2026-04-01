@@ -3,10 +3,12 @@ from __future__ import annotations
 import json
 from collections import Counter
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 from urllib import error, parse, request
 
 POKEAPI_BASE_URL = "https://pokeapi.co/api/v2/pokemon"
+POKEAPI_USER_AGENT = "example-pokemon-team-service/1.0"
 DEFAULT_IMAGE_URL = ""
 
 
@@ -38,9 +40,12 @@ def parse_names(raw_names: str | None) -> list[str]:
 
 
 def fetch_pokemon(name: str, deps: RuntimeDependencies) -> dict[str, Any]:
-    url = f"{deps.base_url}/{parse.quote(name)}"
+    req = request.Request(
+        f"{deps.base_url}/{parse.quote(name)}",
+        headers={"User-Agent": POKEAPI_USER_AGENT},
+    )
     try:
-        with request.urlopen(url, timeout=10) as response:
+        with request.urlopen(req, timeout=10) as response:
             return json.load(response)
     except error.HTTPError as exc:
         if exc.code == 404:
@@ -86,25 +91,55 @@ def compute_summary(team: list[dict[str, Any]]) -> dict[str, Any]:
         for pokemon_type in member["types"]
     )
 
-    average_height = total_height / len(team)
-
     return {
         "total_weight": total_weight,
-        "average_height": average_height,
+        "average_height": total_height / len(team),
         "total_hp": total_hp,
         "type_counts": dict(sorted(type_counts.items())),
     }
 
 
-def build_http_response(status_code: int, payload: dict[str, Any]) -> dict[str, Any]:
+def build_http_response(
+    status_code: int,
+    payload: dict[str, Any],
+    content_type: str = "application/json",
+) -> dict[str, Any]:
+    body: str
+    if content_type == "application/json":
+        body = json.dumps(payload)
+    else:
+        body = payload["body"]
+
     return {
         "statusCode": status_code,
         "headers": {
-            "content-type": "application/json",
+            "content-type": content_type,
             "access-control-allow-origin": "*",
         },
-        "body": json.dumps(payload),
+        "body": body,
     }
+
+
+def frontend_index_path() -> Path:
+    source_root = Path(__file__).resolve().parents[3]
+    lambda_root = Path(__file__).resolve().parents[1]
+
+    for candidate in (
+        source_root / "frontend" / "index.html",
+        lambda_root / "frontend" / "index.html",
+    ):
+        if candidate.exists():
+            return candidate
+
+    raise FileNotFoundError("frontend/index.html not found")
+
+
+def build_frontend_response() -> dict[str, Any]:
+    return build_http_response(
+        200,
+        {"body": frontend_index_path().read_text(encoding="utf-8")},
+        content_type="text/html; charset=utf-8",
+    )
 
 
 def build_team_response(names: list[str], deps: RuntimeDependencies) -> dict[str, Any]:
@@ -132,6 +167,9 @@ def build_team_response(names: list[str], deps: RuntimeDependencies) -> dict[str
 def handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
     path = event.get("rawPath", "/")
     method = event.get("requestContext", {}).get("http", {}).get("method", "GET")
+
+    if path in {"/", "/index.html"} and method == "GET":
+        return build_frontend_response()
 
     if path != "/pokemon/team" or method != "GET":
         return build_http_response(404, {"error": "Not found"})

@@ -93,9 +93,8 @@
     <div class="panel">
       <p><a href="https://github.com/pasunboneleve/example-pokemon-team-service">GitHub repository</a></p>
       <h1>Pokemon Team Service</h1>
-      <p>Enter comma-separated Pokemon names. Point the base URL at your Lambda Function URL or local server.</p>
+      <p>Enter comma-separated Pokemon names. This page calls the same Lambda Function URL API that the service exposes at <code>/pokemon/team</code>.</p>
       <form id="pokemon-form">
-        <input id="base-url" value="http://127.0.0.1:8000" aria-label="Base URL">
         <input id="names" value="pikachu,charizard,bulbasaur" aria-label="Pokemon names">
         <button type="submit">Fetch team</button>
       </form>
@@ -107,7 +106,6 @@
   <script>
     const form = document.getElementById("pokemon-form");
     const namesInput = document.getElementById("names");
-    const baseUrlInput = document.getElementById("base-url");
     const summaryEl = document.getElementById("summary");
     const teamEl = document.getElementById("team");
     const errorEl = document.getElementById("error");
@@ -119,7 +117,7 @@
       errorEl.hidden = true;
       errorEl.textContent = "";
 
-      const url = `${baseUrlInput.value.replace(/\\/$/, "")}/pokemon/team?names=${encodeURIComponent(namesInput.value)}`;
+      const url = `/pokemon/team?names=${encodeURIComponent(namesInput.value)}`;
 
       try {
         const response = await fetch(url);

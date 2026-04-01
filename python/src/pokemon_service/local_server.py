@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
@@ -33,8 +34,10 @@ class PokemonRequestHandler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
-    server = ThreadingHTTPServer(("127.0.0.1", 8000), PokemonRequestHandler)
-    print("Serving on http://127.0.0.1:8000")
+    host = os.environ.get("POKEMON_SERVICE_HOST", "127.0.0.1")
+    port = int(os.environ.get("POKEMON_SERVICE_PORT", "8000"))
+    server = ThreadingHTTPServer((host, port), PokemonRequestHandler)
+    print(f"Serving on http://{host}:{port}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

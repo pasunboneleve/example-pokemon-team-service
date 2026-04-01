@@ -1,1 +1,0 @@
-"""Pokemon team service package."""

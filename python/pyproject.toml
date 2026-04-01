@@ -1,0 +1,25 @@
+[project]
+name = "example-pokemon-team-service"
+version = "0.1.0"
+description = "Example AWS Lambda service for a Pokemon team challenge."
+requires-python = ">=3.12"
+dependencies = []
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+  "pytest>=8.4.0",
+  "pytest-watcher>=0.4.3",
+]
+
+[project.scripts]
+pokemon-local = "pokemon_service.local_server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pokemon_service"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

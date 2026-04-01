@@ -5,7 +5,7 @@ Live URL
 --------
 
 - Lambda Function URL: `TODO`
-- Optional local frontend: `frontend/index.html`
+- Root URL serves the tiny frontend and calls `/pokemon/team` from the page
 
 What this repo is
 -----------------
@@ -45,13 +45,23 @@ Unknown Pokemon policy:
 Local run
 ---------
 
-Run the local HTTP wrapper:
+Install the local Python environment with `uv`:
 
 ```bash
-python3 -m pokemon_service.local_server
+cd python
+uv sync --group dev
 ```
 
-Then call the endpoint:
+Run the local service:
+
+```bash
+uv run pokemon-local
+```
+
+Then open `http://127.0.0.1:8000/`.
+The root URL serves the tiny frontend, and the frontend calls the local API endpoint.
+
+If you want to hit the API directly:
 
 ```bash
 curl "http://127.0.0.1:8000/pokemon/team?names=pikachu,charizard,bulbasaur"
@@ -60,16 +70,16 @@ curl "http://127.0.0.1:8000/pokemon/team?names=pikachu,charizard,bulbasaur"
 Run the test suite:
 
 ```bash
-python3 -m unittest discover -s tests -p 'test_*.py' -v
+cd python
+uv run pytest
 ```
 
-If you want to open the tiny frontend, serve the repo root:
+Watch tests locally while editing:
 
 ```bash
-python3 -m http.server 4173
+cd python
+uv run ptw
 ```
-
-Then visit `http://127.0.0.1:4173/frontend/`.
 
 Deployment
 ----------
@@ -102,12 +112,10 @@ see the troubleshooting note in [`infra/INFRA.md`](infra/INFRA.md).
 Structure
 ---------
 
-- `pokemon_service/`
-  Python application code and Lambda handler
-- `tests/`
-  unit tests for record transformation and team summary logic
+- `python/`
+  Python project metadata, Lambda handler package, and pytest suite
 - `frontend/`
-  tiny static UI for manual checks
+  tiny static UI served at `/`
 - `.github/workflows/deploy.yml`
   CI/CD workflow derived from the template, adapted for Lambda
 - `infra/`

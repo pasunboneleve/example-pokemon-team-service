@@ -35,3 +35,5 @@ infra/*.auto.tfvars
 *.log
 __pycache__/
 *.pyc
+.pytest_cache/
+python/.venv/
