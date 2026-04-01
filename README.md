@@ -83,6 +83,9 @@ The deployment flow is intentionally close to the template:
 5. Apply Terraform/OpenTofu
 6. Push to `main`
 
+With `direnv` loaded, `tofu plan`, `tofu apply`, and `tofu destroy`
+automatically use `infra/prod.tfvars`.
+
 GitHub Actions will:
 
 - assume the AWS deploy role through GitHub OIDC

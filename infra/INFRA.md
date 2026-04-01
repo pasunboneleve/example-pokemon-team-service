@@ -53,7 +53,7 @@ Then rerun `tofu init`.
 
 ```bash
 cp prod.tfvars.template prod.tfvars
-tofu apply -var-file="prod.tfvars"
+tofu apply
 ```
 
 Useful outputs include:
