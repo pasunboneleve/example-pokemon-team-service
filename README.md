@@ -81,8 +81,7 @@ The deployment flow is intentionally close to the template:
 3. Copy `infra/prod.tfvars.template` to `infra/prod.tfvars`
 4. Initialize Terraform/OpenTofu in `infra/`
 5. Apply Terraform/OpenTofu
-6. Copy `deploy.env.template` to `deploy.env`, update values, and commit it
-7. Push to `main`
+6. Push to `main`
 
 GitHub Actions will:
 
@@ -107,7 +106,7 @@ Structure
 - `.github/workflows/deploy.yml`
   CI/CD workflow derived from the template, adapted for Lambda
 - `infra/`
-  Terraform for GitHub OIDC, ECR, Lambda execution IAM, and GitHub secrets
+  Terraform for GitHub OIDC, ECR, Lambda execution IAM, and GitHub Actions secrets and variables
 - `scripts/bootstrap-tf-state.sh`
   S3 remote state bootstrap, copied from the template
 - `PLAN.md`

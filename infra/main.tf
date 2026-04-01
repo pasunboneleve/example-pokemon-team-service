@@ -1,5 +1,9 @@
 data "aws_caller_identity" "current" {}
 
+locals {
+  service_name = var.service_name
+}
+
 data "aws_iam_policy_document" "github_oidc_assume_role" {
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
@@ -96,7 +100,7 @@ resource "aws_iam_openid_connect_provider" "github" {
 }
 
 resource "aws_ecr_repository" "images" {
-  name                 = var.ecr_repository_name
+  name                 = local.service_name
   image_tag_mutability = var.image_tag_mutability
 
   image_scanning_configuration {
@@ -133,7 +137,7 @@ resource "aws_ecr_repository_policy" "lambda_access" {
 }
 
 resource "aws_iam_role" "lambda_execution" {
-  name               = "${var.lambda_function_name}-lambda-execution"
+  name               = "${local.service_name}-lambda-execution"
   assume_role_policy = data.aws_iam_policy_document.lambda_execution_assume_role.json
 }
 

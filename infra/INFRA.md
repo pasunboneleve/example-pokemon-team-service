@@ -6,8 +6,8 @@ This directory provisions the AWS-side delivery foundation:
 - an IAM OIDC provider for GitHub Actions
 - an IAM deploy role that GitHub Actions can assume on `main`
 - a Lambda execution role with basic CloudWatch Logs permissions
-- a GitHub Actions secret, `AWS_ROLE_TO_ASSUME`, populated through the GitHub provider
-- a GitHub Actions secret, `AWS_LAMBDA_EXECUTION_ROLE_ARN`, for function creation
+- GitHub Actions secrets for role ARNs
+- GitHub Actions variables for region, repository, function name, and Lambda settings
 
 ## Prerequisites
 
@@ -30,7 +30,7 @@ export TF_STATE_BUCKET=your-unique-tf-state-bucket
 cd infra
 tofu init \
   -backend-config="bucket=$TF_STATE_BUCKET" \
-  -backend-config="key=$GITHUB_REPO/infra.tfstate" \
+  -backend-config="key=$(basename "$(git rev-parse --show-toplevel)")/infra.tfstate" \
   -backend-config="region=$AWS_REGION" \
   -backend-config="use_lockfile=true"
 ```

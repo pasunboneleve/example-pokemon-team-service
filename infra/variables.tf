@@ -3,13 +3,8 @@ variable "aws_region" {
   type        = string
 }
 
-variable "ecr_repository_name" {
-  description = "Name of the ECR repository that stores deployable images."
-  type        = string
-}
-
-variable "lambda_function_name" {
-  description = "Name of the Lambda function managed by GitHub Actions."
+variable "service_name" {
+  description = "Base service name used for the ECR repository and Lambda function."
   type        = string
 }
 
@@ -58,4 +53,16 @@ variable "image_tag_mutability" {
   description = "ECR tag mutability setting."
   type        = string
   default     = "MUTABLE"
+}
+
+variable "lambda_memory_size" {
+  description = "Lambda memory size in MB."
+  type        = number
+  default     = 256
+}
+
+variable "lambda_timeout" {
+  description = "Lambda timeout in seconds."
+  type        = number
+  default     = 15
 }

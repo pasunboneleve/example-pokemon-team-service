@@ -9,3 +9,33 @@ resource "github_actions_secret" "aws_lambda_execution_role_arn" {
   secret_name     = "AWS_LAMBDA_EXECUTION_ROLE_ARN"
   plaintext_value = aws_iam_role.lambda_execution.arn
 }
+
+resource "github_actions_variable" "aws_region" {
+  repository    = var.github_repo
+  variable_name = "AWS_REGION"
+  value         = var.aws_region
+}
+
+resource "github_actions_variable" "aws_ecr_repository" {
+  repository    = var.github_repo
+  variable_name = "AWS_ECR_REPOSITORY"
+  value         = aws_ecr_repository.images.name
+}
+
+resource "github_actions_variable" "aws_lambda_function_name" {
+  repository    = var.github_repo
+  variable_name = "AWS_LAMBDA_FUNCTION_NAME"
+  value         = var.service_name
+}
+
+resource "github_actions_variable" "aws_lambda_memory_size" {
+  repository    = var.github_repo
+  variable_name = "AWS_LAMBDA_MEMORY_SIZE"
+  value         = tostring(var.lambda_memory_size)
+}
+
+resource "github_actions_variable" "aws_lambda_timeout" {
+  repository    = var.github_repo
+  variable_name = "AWS_LAMBDA_TIMEOUT"
+  value         = tostring(var.lambda_timeout)
+}

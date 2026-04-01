@@ -9,8 +9,7 @@
 #   export AWS_SECRET_ACCESS_KEY=...
 
 aws_region              = "ap-southeast-2"
-ecr_repository_name     = "your-ecr-repository"
-lambda_function_name    = "your-lambda-function-name"
+service_name            = "your-service-name"
 github_owner            = "your-github-username-or-org"
 github_repo             = "your-github-repository"
 github_branch           = "main"
@@ -18,3 +17,5 @@ github_branch           = "main"
 # Optional:
 # github_environment    = "production"
 # github_token          = "ghp_xxx" # Or prefer exporting GITHUB_TOKEN in your shell
+# lambda_memory_size    = 256
+# lambda_timeout        = 15

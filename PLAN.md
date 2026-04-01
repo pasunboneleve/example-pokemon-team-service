@@ -4,10 +4,10 @@ Pokemon Team Service Plan
 What was copied directly from the template
 ------------------------------------------
 
-- top-level repo shape: `infra/`, `scripts/`, `.github/workflows/`, `.env.template`, `deploy.env.template`, `AGENTS.md`
+- top-level repo shape: `infra/`, `scripts/`, `.github/workflows/`, `.env.template`, `AGENTS.md`
 - Terraform/OpenTofu backend bootstrap and GitHub OIDC deployment approach
 - GitHub Actions driven deployment flow from `main`
-- repository conventions around `bd`, `direnv`, and committed `deploy.env`
+- repository conventions around `bd`, `direnv`, and Terraform-managed CI configuration
 - remote state bootstrap through `scripts/bootstrap-tf-state.sh`
 
 What was added for the Pokemon app
