@@ -108,6 +108,39 @@ def test_compute_summary_aggregates_team_metrics() -> None:
     assert summary["type_counts"] == {"electric": 1, "fire": 1, "flying": 1}
 
 
+def test_compute_summary_rounds_average_height_to_two_decimals() -> None:
+    team = [
+        {
+            "name": "pikachu",
+            "height": 4,
+            "weight": 60,
+            "types": ["electric"],
+            "stats": {"hp": 35, "attack": 55, "defense": 40},
+            "image": "x",
+        },
+        {
+            "name": "bulbasaur",
+            "height": 7,
+            "weight": 69,
+            "types": ["grass", "poison"],
+            "stats": {"hp": 45, "attack": 49, "defense": 49},
+            "image": "y",
+        },
+        {
+            "name": "charizard",
+            "height": 17,
+            "weight": 905,
+            "types": ["fire", "flying"],
+            "stats": {"hp": 78, "attack": 84, "defense": 78},
+            "image": "z",
+        },
+    ]
+
+    summary = compute_summary(team)
+
+    assert summary["average_height"] == 9.33
+
+
 def test_root_path_serves_frontend() -> None:
     response = handler(
         {

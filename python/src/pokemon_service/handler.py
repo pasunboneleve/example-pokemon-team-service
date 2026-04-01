@@ -93,7 +93,7 @@ def compute_summary(team: list[dict[str, Any]]) -> dict[str, Any]:
 
     return {
         "total_weight": total_weight,
-        "average_height": total_height / len(team),
+        "average_height": round(total_height / len(team), 2),
         "total_hp": total_hp,
         "type_counts": dict(sorted(type_counts.items())),
     }
