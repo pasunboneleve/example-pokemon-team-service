@@ -20,6 +20,11 @@ This repository exists to validate that a minimal AWS delivery template
 can take a trivial backend idea and make it publicly accessible with a
 clean deployment path.
 
+The public Lambda Function URL is intentionally capped with low reserved
+concurrency by default so a stray script cannot scale the function
+without bound. Adjust `lambda_reserved_concurrency` in
+`infra/prod.tfvars` if you want a different cost/performance tradeoff.
+
 ## API
 
 * `GET /pokemon/team?names=pikachu,charizard,bulbasaur`

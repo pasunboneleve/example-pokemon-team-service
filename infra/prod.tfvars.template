@@ -20,3 +20,4 @@ github_branch           = "main"
 # lambda_image_tag      = "latest"
 # lambda_memory_size    = 256
 # lambda_timeout        = 15
+# lambda_reserved_concurrency = 5

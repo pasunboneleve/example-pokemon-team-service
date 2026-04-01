@@ -147,14 +147,15 @@ resource "aws_iam_role_policy_attachment" "lambda_basic_execution" {
 }
 
 resource "aws_lambda_function" "service" {
-  count         = data.external.lambda_image_presence.result.exists == "true" ? 1 : 0
-  function_name = local.service_name
-  package_type  = "Image"
-  image_uri     = local.lambda_image_uri
-  role          = aws_iam_role.lambda_execution.arn
-  timeout       = var.lambda_timeout
-  memory_size   = var.lambda_memory_size
-  architectures = ["x86_64"]
+  count                        = data.external.lambda_image_presence.result.exists == "true" ? 1 : 0
+  function_name                = local.service_name
+  package_type                 = "Image"
+  image_uri                    = local.lambda_image_uri
+  role                         = aws_iam_role.lambda_execution.arn
+  timeout                      = var.lambda_timeout
+  memory_size                  = var.lambda_memory_size
+  reserved_concurrent_executions = var.lambda_reserved_concurrency
+  architectures                = ["x86_64"]
 
   lifecycle {
     ignore_changes = [image_uri]

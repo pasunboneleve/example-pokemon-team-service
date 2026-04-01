@@ -58,3 +58,7 @@ If the ECR repository is still empty on the first `tofu apply`, Terraform will s
 tofu apply
 ../scripts/update-readme-live-url.sh
 ```
+
+The Lambda is also created with reserved concurrency to cap public
+traffic and limit cost exposure. Tune `lambda_reserved_concurrency` in
+`prod.tfvars` if needed.

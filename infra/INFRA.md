@@ -65,6 +65,9 @@ Useful outputs include:
 - `lambda_function_name`
 - `function_url`
 
+The Lambda function uses reserved concurrency by default so the public
+Function URL has a hard upper bound on concurrent execution.
+
 If `function_url` is `null`, the configured bootstrap tag does not exist in ECR yet. Push one image to `main`, rerun `tofu apply`, then update the README:
 
 ```bash

@@ -67,6 +67,12 @@ variable "lambda_timeout" {
   default     = 15
 }
 
+variable "lambda_reserved_concurrency" {
+  description = "Hard cap on concurrent Lambda executions to limit cost exposure for the public Function URL."
+  type        = number
+  default     = 5
+}
+
 variable "lambda_image_tag" {
   description = "Container image tag Terraform should use when creating or recreating the Lambda function."
   type        = string
