@@ -127,12 +127,25 @@ jobs:
               --statement-id FunctionUrlPublicAccess
           fi
 
+          if printf '%s' "${POLICY}" | grep -q 'FunctionUrlInvokePublicAccess'; then
+            aws lambda remove-permission \
+              --function-name "${AWS_LAMBDA_FUNCTION_NAME}" \
+              --statement-id FunctionUrlInvokePublicAccess
+          fi
+
           aws lambda add-permission \
             --function-name "${AWS_LAMBDA_FUNCTION_NAME}" \
             --statement-id FunctionUrlPublicAccess \
             --action lambda:InvokeFunctionUrl \
             --principal '*' \
             --function-url-auth-type NONE
+
+          aws lambda add-permission \
+            --function-name "${AWS_LAMBDA_FUNCTION_NAME}" \
+            --statement-id FunctionUrlInvokePublicAccess \
+            --action lambda:InvokeFunction \
+            --principal '*' \
+            --invoked-via-function-url
 
       - name: Verify Function URL access configuration
         run: |
@@ -145,6 +158,11 @@ jobs:
             --function-name "${AWS_LAMBDA_FUNCTION_NAME}" \
             --query Policy \
             --output text | grep 'FunctionUrlPublicAccess'
+
+          aws lambda get-policy \
+            --function-name "${AWS_LAMBDA_FUNCTION_NAME}" \
+            --query Policy \
+            --output text | grep 'FunctionUrlInvokePublicAccess'
 
       - name: Show function URL
         run: |
