@@ -84,20 +84,6 @@ The deployment flow is intentionally close to the template:
 6. Copy `deploy.env.template` to `deploy.env`, update values, and commit it
 7. Push to `main`
 
-If `tofu init` fails with `No valid credential sources found` while
-using an AWS CLI profile, export temporary credentials into the
-environment first:
-
-```bash
-eval "$(
-  aws configure export-credentials \
-    --profile <your-profile> \
-    --format env
-)"
-```
-
-Then run `tofu init` again.
-
 GitHub Actions will:
 
 - assume the AWS deploy role through GitHub OIDC
@@ -105,6 +91,9 @@ GitHub Actions will:
 - push the image to ECR
 - create or update the Lambda function
 - create or update the public Lambda Function URL
+
+If the S3 backend refuses to use your AWS CLI profile during `tofu init`,
+see the troubleshooting note in [`infra/INFRA.md`](infra/INFRA.md).
 
 Structure
 ---------
