@@ -20,10 +20,10 @@ This repository exists to validate that a minimal AWS delivery template
 can take a trivial backend idea and make it publicly accessible with a
 clean deployment path.
 
-The public Lambda Function URL is intentionally capped with low reserved
-concurrency by default so a stray script cannot scale the function
-without bound. Adjust `lambda_reserved_concurrency` in
-`infra/prod.tfvars` if you want a different cost/performance tradeoff.
+You can optionally cap the public Lambda Function URL with
+`lambda_reserved_concurrency` in `infra/prod.tfvars` to limit cost
+exposure. That only works if your AWS account has enough concurrency
+headroom to reserve capacity for the function.
 
 ## API
 

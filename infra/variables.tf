@@ -68,9 +68,9 @@ variable "lambda_timeout" {
 }
 
 variable "lambda_reserved_concurrency" {
-  description = "Hard cap on concurrent Lambda executions to limit cost exposure for the public Function URL."
+  description = "Optional hard cap on concurrent Lambda executions to limit cost exposure for the public Function URL."
   type        = number
-  default     = 5
+  default     = null
 }
 
 variable "lambda_image_tag" {

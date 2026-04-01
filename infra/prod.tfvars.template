@@ -21,3 +21,4 @@ github_branch           = "main"
 # lambda_memory_size    = 256
 # lambda_timeout        = 15
 # lambda_reserved_concurrency = 5
+# Set this only if your account has enough concurrency headroom.

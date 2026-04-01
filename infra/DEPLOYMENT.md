@@ -59,6 +59,6 @@ tofu apply
 ../scripts/update-readme-live-url.sh
 ```
 
-The Lambda is also created with reserved concurrency to cap public
-traffic and limit cost exposure. Tune `lambda_reserved_concurrency` in
-`prod.tfvars` if needed.
+If your AWS account has enough concurrency headroom, you can set
+`lambda_reserved_concurrency` in `prod.tfvars` to cap public traffic and
+limit cost exposure.
