@@ -6,6 +6,7 @@ This directory provisions the AWS-side delivery foundation:
 - an IAM OIDC provider for GitHub Actions
 - an IAM deploy role that GitHub Actions can assume on `main`
 - a Lambda execution role with basic CloudWatch Logs permissions
+- a Lambda function and public Function URL once the bootstrap image exists in ECR
 - GitHub Actions secrets for role ARNs
 - GitHub Actions variables for region, repository, function name, and Lambda settings
 
@@ -61,3 +62,11 @@ Useful outputs include:
 - `ecr_repository_url`
 - `github_actions_role_arn`
 - `lambda_execution_role_arn`
+- `lambda_function_name`
+- `function_url`
+
+If `function_url` is `null`, the configured bootstrap tag does not exist in ECR yet. Push one image to `main`, rerun `tofu apply`, then update the README:
+
+```bash
+../scripts/update-readme-live-url.sh
+```

@@ -17,5 +17,6 @@ github_branch           = "main"
 # Optional:
 # github_environment    = "production"
 # github_token          = "ghp_xxx" # Or prefer exporting GITHUB_TOKEN in your shell
+# lambda_image_tag      = "latest"
 # lambda_memory_size    = 256
 # lambda_timeout        = 15

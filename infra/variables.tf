@@ -66,3 +66,9 @@ variable "lambda_timeout" {
   type        = number
   default     = 15
 }
+
+variable "lambda_image_tag" {
+  description = "Container image tag Terraform should use when creating or recreating the Lambda function."
+  type        = string
+  default     = "latest"
+}

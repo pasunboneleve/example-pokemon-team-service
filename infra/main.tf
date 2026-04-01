@@ -1,7 +1,21 @@
 data "aws_caller_identity" "current" {}
 
 locals {
-  service_name = var.service_name
+  service_name     = var.service_name
+  lambda_image_uri = "${aws_ecr_repository.images.repository_url}:${var.lambda_image_tag}"
+}
+
+data "external" "lambda_image_presence" {
+  program = [
+    "bash",
+    "${path.module}/../scripts/check-ecr-image.sh",
+  ]
+
+  query = {
+    repository_url = aws_ecr_repository.images.repository_url
+    image_tag      = var.lambda_image_tag
+    aws_region     = var.aws_region
+  }
 }
 
 data "aws_iam_policy_document" "github_oidc_assume_role" {
@@ -52,29 +66,13 @@ data "aws_iam_policy_document" "github_actions_permissions" {
   statement {
     sid = "ManageLambda"
     actions = [
-      "lambda:AddPermission",
-      "lambda:CreateFunction",
-      "lambda:CreateFunctionUrlConfig",
       "lambda:GetFunction",
-      "lambda:GetFunctionUrlConfig",
-      "lambda:GetPolicy",
-      "lambda:RemovePermission",
-      "lambda:TagResource",
-      "lambda:UntagResource",
       "lambda:UpdateFunctionCode",
       "lambda:UpdateFunctionConfiguration",
-      "lambda:UpdateFunctionUrlConfig",
     ]
     resources = ["*"]
   }
 
-  statement {
-    sid = "PassLambdaExecutionRole"
-    actions = [
-      "iam:PassRole",
-    ]
-    resources = [aws_iam_role.lambda_execution.arn]
-  }
 }
 
 data "aws_iam_policy_document" "lambda_execution_assume_role" {
@@ -145,6 +143,45 @@ resource "aws_iam_role" "lambda_execution" {
 resource "aws_iam_role_policy_attachment" "lambda_basic_execution" {
   role       = aws_iam_role.lambda_execution.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+resource "aws_lambda_function" "service" {
+  count         = data.external.lambda_image_presence.result.exists == "true" ? 1 : 0
+  function_name = local.service_name
+  package_type  = "Image"
+  image_uri     = local.lambda_image_uri
+  role          = aws_iam_role.lambda_execution.arn
+  timeout       = var.lambda_timeout
+  memory_size   = var.lambda_memory_size
+  architectures = ["x86_64"]
+
+  lifecycle {
+    ignore_changes = [image_uri]
+  }
+}
+
+resource "aws_lambda_function_url" "service" {
+  count              = data.external.lambda_image_presence.result.exists == "true" ? 1 : 0
+  function_name      = aws_lambda_function.service[0].function_name
+  authorization_type = "NONE"
+}
+
+resource "aws_lambda_permission" "function_url_invoke" {
+  count                  = data.external.lambda_image_presence.result.exists == "true" ? 1 : 0
+  statement_id           = "FunctionUrlPublicAccess"
+  action                 = "lambda:InvokeFunctionUrl"
+  function_name          = aws_lambda_function.service[0].function_name
+  principal              = "*"
+  function_url_auth_type = "NONE"
+}
+
+resource "aws_lambda_permission" "function_url_public_invoke" {
+  count                    = data.external.lambda_image_presence.result.exists == "true" ? 1 : 0
+  statement_id             = "FunctionUrlInvokePublicAccess"
+  action                   = "lambda:InvokeFunction"
+  function_name            = aws_lambda_function.service[0].function_name
+  principal                = "*"
+  invoked_via_function_url = true
 }
 
 resource "aws_iam_role" "github_actions" {

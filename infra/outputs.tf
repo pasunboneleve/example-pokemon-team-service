@@ -22,3 +22,13 @@ output "lambda_execution_role_arn" {
   description = "IAM role used by the Lambda function."
   value       = aws_iam_role.lambda_execution.arn
 }
+
+output "lambda_function_name" {
+  description = "Name of the Terraform-managed Lambda function."
+  value       = try(aws_lambda_function.service[0].function_name, null)
+}
+
+output "function_url" {
+  description = "Public Lambda Function URL."
+  value       = try(aws_lambda_function_url.service[0].function_url, null)
+}
