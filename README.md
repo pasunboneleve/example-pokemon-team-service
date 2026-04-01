@@ -5,7 +5,7 @@ Live URL
 --------
 
 <!-- LIVE_URL_START -->
-- Lambda Function URL: `https://oz5d42va2dsixglkqcwewzq36e0adhmz.lambda-url.ap-southeast-2.on.aws/`
+- Lambda Function URL: [Live URL](https://oz5d42va2dsixglkqcwewzq36e0adhmz.lambda-url.ap-southeast-2.on.aws/)
 <!-- LIVE_URL_END -->
 - Root URL serves a tiny frontend and calls `/pokemon/team`
 
