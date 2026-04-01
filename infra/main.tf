@@ -58,6 +58,7 @@ data "aws_iam_policy_document" "github_actions_permissions" {
       "lambda:GetFunction",
       "lambda:GetFunctionUrlConfig",
       "lambda:GetPolicy",
+      "lambda:RemovePermission",
       "lambda:TagResource",
       "lambda:UntagResource",
       "lambda:UpdateFunctionCode",
