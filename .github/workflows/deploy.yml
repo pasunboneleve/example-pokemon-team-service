@@ -1,0 +1,127 @@
+name: Deploy to AWS Lambda
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Check configuration
+        run: |
+          if [ ! -f deploy.env ]; then
+            echo "This is a template repository. Commit deploy.env after copying deploy.env.template."
+            exit 1
+          fi
+
+          if [ -z "${{ secrets.AWS_ROLE_TO_ASSUME }}" ]; then
+            echo "Configure the AWS_ROLE_TO_ASSUME GitHub Actions secret before running CI."
+            exit 1
+          fi
+
+          if [ -z "${{ secrets.AWS_LAMBDA_EXECUTION_ROLE_ARN }}" ]; then
+            echo "Configure the AWS_LAMBDA_EXECUTION_ROLE_ARN GitHub Actions secret before running CI."
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Load deploy env
+        run: |
+          grep -v '^[[:space:]]*#' deploy.env | grep -v '^[[:space:]]*$' >> "$GITHUB_ENV"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push container image
+        id: build-image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.AWS_ECR_REPOSITORY }}:${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.AWS_ECR_REPOSITORY }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Create or update Lambda function
+        env:
+          IMAGE_IDENTIFIER: ${{ steps.login-ecr.outputs.registry }}/${{ env.AWS_ECR_REPOSITORY }}:${{ github.sha }}
+          LAMBDA_EXECUTION_ROLE_ARN: ${{ secrets.AWS_LAMBDA_EXECUTION_ROLE_ARN }}
+        run: |
+          if aws lambda get-function --function-name "${AWS_LAMBDA_FUNCTION_NAME}" >/dev/null 2>&1; then
+            aws lambda update-function-code \
+              --function-name "${AWS_LAMBDA_FUNCTION_NAME}" \
+              --image-uri "${IMAGE_IDENTIFIER}"
+
+            aws lambda update-function-configuration \
+              --function-name "${AWS_LAMBDA_FUNCTION_NAME}" \
+              --timeout "${AWS_LAMBDA_TIMEOUT}" \
+              --memory-size "${AWS_LAMBDA_MEMORY_SIZE}"
+
+            aws lambda wait function-updated-v2 \
+              --function-name "${AWS_LAMBDA_FUNCTION_NAME}"
+          else
+            aws lambda create-function \
+              --function-name "${AWS_LAMBDA_FUNCTION_NAME}" \
+              --package-type Image \
+              --code "ImageUri=${IMAGE_IDENTIFIER}" \
+              --role "${LAMBDA_EXECUTION_ROLE_ARN}" \
+              --timeout "${AWS_LAMBDA_TIMEOUT}" \
+              --memory-size "${AWS_LAMBDA_MEMORY_SIZE}" \
+              --architectures x86_64
+
+            aws lambda wait function-active-v2 \
+              --function-name "${AWS_LAMBDA_FUNCTION_NAME}"
+          fi
+
+      - name: Create or update Lambda Function URL
+        run: |
+          if aws lambda get-function-url-config --function-name "${AWS_LAMBDA_FUNCTION_NAME}" >/dev/null 2>&1; then
+            aws lambda update-function-url-config \
+              --function-name "${AWS_LAMBDA_FUNCTION_NAME}" \
+              --auth-type NONE
+          else
+            aws lambda create-function-url-config \
+              --function-name "${AWS_LAMBDA_FUNCTION_NAME}" \
+              --auth-type NONE
+          fi
+
+      - name: Allow public Function URL invoke
+        run: |
+          POLICY=$(aws lambda get-policy --function-name "${AWS_LAMBDA_FUNCTION_NAME}" --query Policy --output text 2>/dev/null || true)
+
+          if ! printf '%s' "${POLICY}" | grep -q 'FunctionUrlPublicAccess'; then
+            aws lambda add-permission \
+              --function-name "${AWS_LAMBDA_FUNCTION_NAME}" \
+              --statement-id FunctionUrlPublicAccess \
+              --action lambda:InvokeFunctionUrl \
+              --principal '*' \
+              --function-url-auth-type NONE
+          fi
+
+      - name: Show function URL
+        run: |
+          aws lambda get-function-url-config \
+            --function-name "${AWS_LAMBDA_FUNCTION_NAME}" \
+            --query FunctionUrl \
+            --output text

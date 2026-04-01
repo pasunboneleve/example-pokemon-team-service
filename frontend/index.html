@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pokemon Team Service</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6efe2;
+      --panel: #fffdf8;
+      --ink: #1f2a36;
+      --accent: #d94f04;
+      --border: #d9c8ad;
+    }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      background:
+        radial-gradient(circle at top right, rgba(217, 79, 4, 0.14), transparent 32%),
+        linear-gradient(180deg, #fbf6ec 0%, var(--bg) 100%);
+      color: var(--ink);
+    }
+
+    main {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 32px 20px 48px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 16px 32px rgba(31, 42, 54, 0.08);
+    }
+
+    form {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    input, button {
+      font: inherit;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    button {
+      background: var(--accent);
+      color: white;
+      cursor: pointer;
+      border: none;
+    }
+
+    .team {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      background: white;
+    }
+
+    img {
+      max-width: 100%;
+      height: 120px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto 12px;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #fff7eb;
+      border: 1px solid var(--border);
+      padding: 12px;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="panel">
+      <p><a href="https://github.com/pasunboneleve/example-pokemon-team-service">GitHub repository</a></p>
+      <h1>Pokemon Team Service</h1>
+      <p>Enter comma-separated Pokemon names. Point the base URL at your Lambda Function URL or local server.</p>
+      <form id="pokemon-form">
+        <input id="base-url" value="http://127.0.0.1:8000" aria-label="Base URL">
+        <input id="names" value="pikachu,charizard,bulbasaur" aria-label="Pokemon names">
+        <button type="submit">Fetch team</button>
+      </form>
+      <div id="summary"></div>
+      <div class="team" id="team"></div>
+      <pre id="error" hidden></pre>
+    </div>
+  </main>
+  <script>
+    const form = document.getElementById("pokemon-form");
+    const namesInput = document.getElementById("names");
+    const baseUrlInput = document.getElementById("base-url");
+    const summaryEl = document.getElementById("summary");
+    const teamEl = document.getElementById("team");
+    const errorEl = document.getElementById("error");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      summaryEl.innerHTML = "";
+      teamEl.innerHTML = "";
+      errorEl.hidden = true;
+      errorEl.textContent = "";
+
+      const url = `${baseUrlInput.value.replace(/\\/$/, "")}/pokemon/team?names=${encodeURIComponent(namesInput.value)}`;
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(JSON.stringify(data, null, 2));
+        }
+
+        summaryEl.innerHTML = `
+          <h2>Summary</h2>
+          <p>Total weight: ${data.summary.total_weight}</p>
+          <p>Average height: ${data.summary.average_height}</p>
+          <p>Total HP: ${data.summary.total_hp}</p>
+          <p>Type counts: ${JSON.stringify(data.summary.type_counts)}</p>
+        `;
+
+        for (const pokemon of data.team) {
+          const article = document.createElement("article");
+          article.className = "card";
+          article.innerHTML = `
+            <img src="${pokemon.image}" alt="${pokemon.name}">
+            <h3>${pokemon.name}</h3>
+            <p>Height: ${pokemon.height}</p>
+            <p>Weight: ${pokemon.weight}</p>
+            <p>Types: ${pokemon.types.join(", ")}</p>
+            <p>HP: ${pokemon.stats.hp}</p>
+            <p>Attack: ${pokemon.stats.attack}</p>
+            <p>Defense: ${pokemon.stats.defense}</p>
+          `;
+          teamEl.appendChild(article);
+        }
+      } catch (error) {
+        errorEl.hidden = false;
+        errorEl.textContent = String(error);
+      }
+    });
+  </script>
+</body>
+</html>
