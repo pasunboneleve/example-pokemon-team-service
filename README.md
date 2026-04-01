@@ -85,6 +85,8 @@ The deployment flow is intentionally close to the template:
 
 With `direnv` loaded, `tofu plan`, `tofu apply`, and `tofu destroy`
 automatically use `infra/prod.tfvars`.
+If `AWS_PROFILE` is set, `direnv reload` also refreshes exported AWS
+session credentials using `aws configure export-credentials`.
 
 GitHub Actions will:
 

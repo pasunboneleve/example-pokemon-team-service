@@ -17,6 +17,8 @@ direnv allow
 `prod.tfvars` contains repository and service metadata only. AWS credentials should come from your shell environment, for example through `AWS_PROFILE`.
 With `direnv` loaded, `tofu plan`, `tofu apply`, and `tofu destroy`
 automatically use `infra/prod.tfvars`.
+If `AWS_PROFILE` is set, `direnv reload` also refreshes exported AWS
+session credentials.
 
 ### Initial infrastructure setup
 
