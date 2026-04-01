@@ -7,45 +7,53 @@ Live URL
 <!-- LIVE_URL_START -->
 - Lambda Function URL: `https://oz5d42va2dsixglkqcwewzq36e0adhmz.lambda-url.ap-southeast-2.on.aws/`
 <!-- LIVE_URL_END -->
-- Root URL serves the tiny frontend and calls `/pokemon/team` from the page
+- Root URL serves a tiny frontend and calls `/pokemon/team`
 
-What this repo is
------------------
+## What this repo is
 
-This repository is a deliberately small example application created by
-starting from `minimal-aws-github-ci-template` and changing only what
-was necessary to ship a real AWS Lambda service.
+This is a deliberately small example service built by copying
+`minimal-aws-github-ci-template` and changing only what was required
+to ship a real AWS Lambda application.
 
-It exposes:
+The problem domain (Pokémon) is incidental.
+This repository exists to validate that a minimal AWS delivery template
+can take a trivial backend idea and make it publicly accessible with a
+clean deployment path.
 
-- `GET /pokemon/team?names=pikachu,charizard,bulbasaur`
+## API
 
-For each requested Pokemon it returns:
+* `GET /pokemon/team?names=pikachu,charizard,bulbasaur`
 
-- name
-- height
-- weight
-- types
-- stats including `hp`, `attack`, and `defense`
-- image
+The `names` parameter is a comma-separated list.
+Pokémon may appear more than once.
 
-It also returns a team summary with:
+For each Pokémon, the service returns:
 
-- `total_weight`
-- `average_height`
-- `total_hp`
-- `type_counts`
+* name
+* height
+* weight
+* types
+* stats (`hp`, `attack`, `defense`)
+* image
 
-The upstream data source is [PokeAPI](https://pokeapi.co/).
+The response also includes a team summary:
 
-Unknown Pokemon policy:
+* `total_weight`
+* `average_height`
+* `total_hp`
+* `type_counts`
 
-- if any requested name is unknown, the service returns `404`
-- the response includes `unknown_names`
-- the service does not return a partial team
+Data source: [PokeAPI](https://pokeapi.co/)
 
-Local run
----------
+## Error handling
+
+Unknown Pokémon policy:
+
+* if any requested name is unknown, the service returns `404`
+* the response includes `unknown_names`
+* partial teams are not returned
+
+## Local run
 
 Install the local Python environment with `uv`:
 
@@ -60,23 +68,28 @@ Run the local service:
 uv run pokemon-local
 ```
 
-Then open `http://127.0.0.1:8000/`.
-The root URL serves the tiny frontend, and the frontend calls the local API endpoint.
+Open:
 
-If you want to hit the API directly:
+```
+http://127.0.0.1:8000/
+```
+
+The root URL serves the frontend, which calls the local API.
+
+Call the API directly:
 
 ```bash
 curl "http://127.0.0.1:8000/pokemon/team?names=pikachu,charizard,bulbasaur"
 ```
 
-Run the test suite:
+Run tests:
 
 ```bash
 cd python
 uv run pytest
 ```
 
-Watch tests locally while editing:
+Watch tests:
 
 ```bash
 cd python
@@ -89,58 +102,64 @@ Refresh the README live URL block from Terraform state:
 ./scripts/update-readme-live-url.sh
 ```
 
-Deployment
-----------
+## Deployment
 
-The deployment flow is intentionally close to the template:
+The deployment flow stays intentionally close to the template:
 
 1. Copy `.env.template` to `.env` and load it with `direnv allow`
-2. Create the Terraform state bucket with `./scripts/bootstrap-tf-state.sh`
+2. Create the Terraform state bucket:
+
+   ```bash
+   ./scripts/bootstrap-tf-state.sh
+   ```
 3. Copy `infra/prod.tfvars.template` to `infra/prod.tfvars`
-4. Initialize Terraform/OpenTofu in `infra/`
-5. Apply Terraform/OpenTofu to create the ECR repository, IAM roles, and GitHub Actions configuration
-6. Push to `main` once so GitHub Actions publishes the first `latest` image to ECR
-7. Apply Terraform/OpenTofu again so it can create the Lambda function and Function URL from that image
-8. Run `./scripts/update-readme-live-url.sh`
+4. Initialize OpenTofu in `infra/`
+5. Apply OpenTofu to create ECR, IAM roles, and GitHub configuration
+6. Push to `main` so GitHub Actions publishes the first image to ECR
+7. Apply OpenTofu again to create the Lambda function and Function URL
+8. Run:
+
+   ```bash
+   ./scripts/update-readme-live-url.sh
+   ```
 
 With `direnv` loaded, `tofu plan`, `tofu apply`, `tofu destroy`, and `tofu import`
 automatically use `infra/prod.tfvars`.
-If `AWS_PROFILE` is set, `direnv reload` also refreshes exported AWS
-session credentials using `aws configure export-credentials`.
+
+If `AWS_PROFILE` is set, `direnv reload` also refreshes AWS session credentials via
+`aws configure export-credentials`.
 
 GitHub Actions will:
 
-- assume the AWS deploy role through GitHub OIDC
-- build the Lambda container image
-- push the image to ECR
-- update the existing Terraform-managed Lambda function
+* assume the AWS deploy role via GitHub OIDC
+* build the Lambda container image
+* push the image to ECR
+* update the Terraform-managed Lambda function
 
-If the S3 backend refuses to use your AWS CLI profile during `tofu init`,
-see the troubleshooting note in [`infra/INFRA.md`](infra/INFRA.md).
-If `tofu output -raw function_url` is still empty after the first apply,
-that just means the bootstrap image does not exist in ECR yet. Push once,
-then rerun `tofu apply`.
+Notes:
 
-Structure
----------
+* If the S3 backend refuses your AWS CLI profile during `tofu init`,
+  see [`infra/INFRA.md`](infra/INFRA.md)
+* If `tofu output -raw function_url` is empty after the first apply,
+  push once to create the initial image, then re-run `tofu apply`
 
-- `python/`
-  Python project metadata, Lambda handler package, and pytest suite
-- `frontend/`
+## Structure
+
+* `python/`
+  Lambda handler, project metadata, and pytest suite
+* `frontend/`
   tiny static UI served at `/`
-- `.github/workflows/deploy.yml`
-  CI/CD workflow derived from the template, adapted for Lambda code updates
-- `infra/`
-  Terraform for GitHub OIDC, ECR, Lambda, Function URL, and GitHub Actions secrets and variables
-- `scripts/bootstrap-tf-state.sh`
-  S3 remote state bootstrap, copied from the template
-- `scripts/update-readme-live-url.sh`
+* `.github/workflows/deploy.yml`
+  CI/CD derived from the template, adapted for Lambda updates
+* `infra/`
+  OpenTofu for OIDC, ECR, Lambda, Function URL, and GitHub config
+* `scripts/bootstrap-tf-state.sh`
+  S3 remote state bootstrap (from template)
+* `scripts/update-readme-live-url.sh`
   updates the README live URL section from `tofu output`
-- `PLAN.md`
-  short scope statement for this example adaptation
+* `PLAN.md`
+  scope and adaptation notes
 
-Template link
--------------
+## Template link
 
-This service was built directly from
-[`minimal-aws-github-ci-template`](https://github.com/pasunboneleve/aws-service-delivery-template).
+https://github.com/pasunboneleve/aws-service-delivery-template
