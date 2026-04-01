@@ -67,6 +67,7 @@ data "aws_iam_policy_document" "github_actions_permissions" {
     sid = "ManageLambda"
     actions = [
       "lambda:GetFunction",
+      "lambda:GetFunctionUrlConfig",
       "lambda:UpdateFunctionCode",
       "lambda:UpdateFunctionConfiguration",
     ]
